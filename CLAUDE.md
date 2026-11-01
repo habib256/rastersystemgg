@@ -57,8 +57,38 @@ python3 tools/run_selftests.py            # la suite complète
 - Interfaces publiques des `.hpp` de `src/core/` = contrat : ne changer une
   signature qu'en mettant à jour TOUS les appelants dans le même commit.
 
-## Références matérielles
+## Références matérielles — et leur grade
 
-SMS Power! (docs VDP/mapper), MAME (`sms.cpp`, `sn76496.cpp`, `315_5124.cpp`)
-comme référence de comportement. Convention SDSC pour la console de debug
+**Le silicium est la référence.** Toute affirmation sur le matériel porte **son
+grade et sa source**, dans un crochet en tête de commentaire, pour qu'un
+lecteur et un `grep` s'accordent sur ce qui soutient le code :
+
+| Grade | Preuve | Pour RasterSystemGG |
+|---|---|---|
+| **A** | Mesure sur **machine réelle** | Oscilloscope ou capture sur une vraie Master System / Game Gear. |
+| **B** | **Document primaire** | Fiches techniques (TMS9918/315-5124, SN76489), documentation Sega, SMS Power! quand il cite le matériel. |
+| **C** | **Désassemblage de ROM** | BIOS, jeux. Preuve du *contrat* attendu par le logiciel, pas du silicium. |
+| **D** | **Un autre émulateur** | MAME (`sms.cpp`, `sn76496.cpp`, `315_5124.cpp`), Emulicious, Meka — à égalité. Lecture du matériel faite par un tiers : utile, faillible. |
+| **E** | **Affirmé sans source.** | |
+| **F** | **Inconnu assumé** | deviné, ajusté, approximatif, non vérifié. |
+
+Trois règles en découlent. **Une citation de grade D nomme sa révision** (tag
+ou commit) : les numéros de ligne amont bougent à chaque commit, et une plage
+sans révision ne désigne rien. **Un grade inférieur ne l'emporte jamais sur un
+grade supérieur** — là où RasterSystemGG s'écarte de MAME parce qu'une fiche
+technique, une ROM ou une mesure dit autre chose, c'est correct, et le
+commentaire le dit ; cela protège le code d'un futur « alignement sur MAME »
+qui serait une régression. **Un F se garde, il ne se cache pas** : écris ce qui
+le trancherait.
+
+```
+// [B] Fiche 315-5124 § 3 — le drapeau de collision tombe au sprite 9.
+// [D] MAME 315_5124.cpp:812-830 @ mame0287 — idem, tel que MAME le lit.
+// [C] BIOS US $0283 — le système attend le bit déjà effacé.
+// [A] Mesuré sur une vraie SMS : 228 cycles par ligne.
+// [F] Inconnu : ajusté jusqu'à ce que le jeu passe. Tranché par : une capture.
+```
+
+Cette hiérarchie est commune à tous les émulateurs du même auteur (POM2, POM1,
+POMIIGS, POM68K, POMPPC, NeoST, RasterSystemGG). Convention SDSC pour la console de debug
 (ports 0xFC/0xFD) — utilisée par nos ROM de test.
